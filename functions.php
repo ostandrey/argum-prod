@@ -802,7 +802,9 @@ function gform_remove_date_autocomplete( $input, $field ) {
 	if ( is_admin() ) {
 		return $input;
 	}
-	if ( GFFormsModel::is_html5_enabled() && $field->type == 'date' ) {
+	// Check if Gravity Forms is active and use alternative method
+	if ( class_exists( 'GFCommon' ) && $field->type == 'date' ) {
+		// Use alternative method instead of deprecated GFFormsModel::is_html5_enabled()
 		$input = str_replace( '<input', '<input autocomplete="off" ', $input );
 	}
 
@@ -2136,17 +2138,23 @@ function add_simple_toast_functionality() {
 
 // Fix ACF translation loading issue - Move ACF filters to proper hook
 function fix_acf_translation_loading() {
-    // Only add ACF filters if ACF is active
-    if (class_exists('ACF')) {
+    // Only add ACF filters if ACF is active and after plugins are loaded
+    if (class_exists('ACF') && function_exists('acf_get_setting')) {
         add_filter('acf/settings/current_language', 'my_acf_settings_current_language');
         add_filter('acf/settings/default_language', 'my_acf_settings_default_language');
         add_filter('acf/load_value', 'auto_translate_options_fields', 10, 3);
     }
 }
 
-add_action('init', 'fix_acf_translation_loading');
+// Move to plugins_loaded to ensure ACF is fully loaded
+add_action('plugins_loaded', 'fix_acf_translation_loading', 20);
 
 function my_acf_settings_current_language($language) {
+    // Add safety check to prevent early loading
+    if (!did_action('init')) {
+        return $language;
+    }
+    
     if (function_exists('pll_current_language')) {
         return pll_current_language();
     }
@@ -2154,6 +2162,11 @@ function my_acf_settings_current_language($language) {
 }
 
 function my_acf_settings_default_language($language) {
+    // Add safety check to prevent early loading
+    if (!did_action('init')) {
+        return $language;
+    }
+    
     if (function_exists('pll_default_language')) {
         return pll_default_language();
     }
@@ -2161,6 +2174,11 @@ function my_acf_settings_default_language($language) {
 }
 
 function auto_translate_options_fields($value, $post_id, $field) {
+    // Add safety check to prevent early loading
+    if (!did_action('init')) {
+        return $value;
+    }
+    
     if ($post_id !== 'options') {
         return $value;
     }

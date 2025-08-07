@@ -36,6 +36,9 @@ $page_title = get_drone_text('drones_page_title') ?: ($current_lang === 'en' ? '
     <section class="drones-section">
         <div class="container">
             <?php get_template_part('parts/breadcrumbs'); ?>
+        </div>
+        <div class="container">
+
             <div class="drones-section__content">
                 <!-- Page Title -->
                 <h1 class="drones-section__title">
