@@ -36,7 +36,7 @@ add_action('init', function () {
 });
 
 // Constants
-define( 'IMAGE_PLACEHOLDER', get_stylesheet_directory_uri() . '/assets/images/placeholder.jpg' );
+define( 'IMAGE_PLACEHOLDER', get_stylesheet_directory_uri() . '/assets/images/placeholder.jpg');
 
 /******************************************************************************
  * Global Functions
@@ -1151,7 +1151,7 @@ function load_more_locations() {
         while ($query->have_posts() && $post_count < $posts_per_page) {
             $query->the_post();
             ob_start();
-            get_template_part('parts/loop', 'portfolio');
+            get_template_part('parts/loop-portfolio.php', 'portfolio');
             $posts[] = ob_get_clean();
             $post_count++;
         }
@@ -2178,45 +2178,3 @@ function auto_translate_options_fields($value, $post_id, $field) {
 
     return $value;
 }
-function add_google_tracking_scripts() {
-    ?>
-    <!-- Google Tag Manager -->
-    <script>
-      (function(w,d,s,l,i){
-        w[l]=w[l]||[];
-        w[l].push({'gtm.start': new Date().getTime(), event:'gtm.js'});
-        var f=d.getElementsByTagName(s)[0],
-            j=d.createElement(s),
-            dl=l!='dataLayer'?'&l='+l:'';
-        j.async=true;
-        j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
-        f.parentNode.insertBefore(j,f);
-      })(window,document,'script','dataLayer','');
-    </script>
-    <!-- End Google Tag Manager -->
-
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id="></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', '');
-    </script>
-    <?php
-}
-add_action('wp_head', 'add_google_tracking_scripts');
-
-function add_clarity_script() {
-    ?>
-    <!-- Microsoft Clarity -->
-    <script type="text/javascript">
-      (function(c,l,a,r,i,t,y){
-        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-      })(window, document, "clarity", "script", "");
-    </script>
-    <?php
-}
-add_action('wp_head', 'add_clarity_script');
