@@ -137,6 +137,18 @@
     line-height: 135% !important;
     color: #666666 !important;
     margin: 0 !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+    
+    &:focus {
+      outline: none !important;
+      border-color: #46C800 !important;
+      box-shadow: 0 0 0 2px rgba(70, 200, 0, 0.1) !important;
+    }
+    
+    &:not(:focus) {
+      border-color: #CFCFCF !important;
+      box-shadow: none !important;
+    }
   }
 
   .ginput_container select {
@@ -144,6 +156,61 @@
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M7 10L12 15L17 10" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>') !important;
     background-repeat: no-repeat !important;
     background-position: right 16px center !important;
+    
+    &:focus {
+      outline: none !important;
+      border-color: #46C800 !important;
+      box-shadow: 0 0 0 2px rgba(70, 200, 0, 0.1) !important;
+    }
+    
+    &:not(:focus) {
+      border-color: #CFCFCF !important;
+      box-shadow: none !important;
+    }
+    
+    option {
+      background: #FFFFFF !important;
+      color: #666666 !important;
+      
+      &:checked {
+        background: #FFFFFF !important;
+        color: #1C1C1C !important;
+      }
+      
+      &:hover {
+        background: #F5F5F5 !important;
+      }
+    }
+    
+    // Prevent highlight from staying after selection
+    &:focus option:checked {
+      background: #FFFFFF !important;
+      color: #1C1C1C !important;
+    }
+    
+    &:focus option:hover {
+      background: #F5F5F5 !important;
+      color: #1C1C1C !important;
+    }
+  }
+  
+  // Override browser's default selection highlighting
+  .ginput_container select::-moz-selection {
+    background: transparent !important;
+    color: inherit !important;
+  }
+  
+  .ginput_container select::selection {
+    background: transparent !important;
+    color: inherit !important;
+  }
+  
+  // Force remove selection highlighting
+  .ginput_container select:focus {
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+    user-select: none !important;
   }
 
   .ginput_container textarea {

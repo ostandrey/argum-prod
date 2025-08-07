@@ -2353,5 +2353,31 @@ function debug_homepage_settings() {
     error_log("Homepage Debug - UA: $ua_homepage, EN: $en_homepage, Main: $main_homepage, Current Lang: $current_lang");
 }
 
+// Fix form select focus issues - Minimal JavaScript solution
+function fix_form_select_focus() {
+    ?>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fix select highlight issues with minimal JavaScript
+        const selects = document.querySelectorAll('.ginput_container select');
+        selects.forEach(function(select) {
+            select.addEventListener('change', function() {
+                // Remove text selection after change
+                if (window.getSelection) {
+                    window.getSelection().removeAllRanges();
+                }
+                // Remove focus after a short delay
+                setTimeout(function() {
+                    select.blur();
+                }, 50);
+            });
+        });
+    });
+    </script>
+    <?php
+}
+
+add_action('wp_footer', 'fix_form_select_focus');
+
 // Add this to your wp-config.php for debugging if needed
 // add_action('init', 'debug_homepage_settings');

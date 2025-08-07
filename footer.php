@@ -46,11 +46,11 @@ function get_cached_footer_data($lang) {
                 }
             }
             
-            // Get bottom links efficiently
+            // Get bottom links efficiently - use English fields (_en suffix) from Ukrainian language context
             if (have_rows('footer_bottom_links_en', 'options')) {
                 while (have_rows('footer_bottom_links_en', 'options')) {
                     the_row();
-                    $bottom_link = get_sub_field('bottom_link');
+                    $bottom_link = get_sub_field('bottom_link_en');
 
                     if ($bottom_link) {
                         $footer_cache[$lang]['bottom_links'][] = array(
@@ -212,6 +212,49 @@ $bottom_links = $footer_data['bottom_links'];
                             <?php echo esc_html($link['title']); ?>
                         </a>
                     <?php endforeach; ?>
+                </div>
+            </div>
+        <?php else: ?>
+            <!-- Fallback footer links for when ACF fields are not configured -->
+            <div class="footer__bottom">
+                <div class="footer__links">
+                    <?php if ($current_lang === 'en'): ?>
+                        <?php
+                        // Try to get English footer links from ACF fields with _en suffix
+                        if (have_rows('footer_bottom_links_en', 'options')) {
+                            while (have_rows('footer_bottom_links_en', 'options')) {
+                                the_row();
+                                $bottom_link = get_sub_field('bottom_link_en');
+                                if ($bottom_link) {
+                                    echo '<a href="' . esc_url($bottom_link['url']) . '" class="footer__bottom-link" target="' . esc_attr($bottom_link['target'] ?: '_self') . '">' . esc_html($bottom_link['title']) . '</a>';
+                                }
+                            }
+                        } else {
+                            // If no ACF fields, show default English links
+                            echo '<a href="' . esc_url(home_url('/privacy-policy/')) . '" class="footer__bottom-link">Privacy Policy</a>';
+                            echo '<a href="' . esc_url(home_url('/terms-of-service/')) . '" class="footer__bottom-link">Terms of Service</a>';
+                            echo '<a href="' . esc_url(home_url('/cookie-policy/')) . '" class="footer__bottom-link">Cookie Policy</a>';
+                        }
+                        ?>
+                    <?php else: ?>
+                        <?php
+                        // Try to get Ukrainian footer links from ACF fields
+                        if (have_rows('footer_bottom_links', 'options')) {
+                            while (have_rows('footer_bottom_links', 'options')) {
+                                the_row();
+                                $bottom_link = get_sub_field('bottom_link');
+                                if ($bottom_link) {
+                                    echo '<a href="' . esc_url($bottom_link['url']) . '" class="footer__bottom-link" target="' . esc_attr($bottom_link['target'] ?: '_self') . '">' . esc_html($bottom_link['title']) . '</a>';
+                                }
+                            }
+                        } else {
+                            // If no ACF fields, show default Ukrainian links
+                            echo '<a href="' . esc_url(home_url('/uk/privacy-policy/')) . '" class="footer__bottom-link">Політика конфіденційності</a>';
+                            echo '<a href="' . esc_url(home_url('/uk/terms-of-service/')) . '" class="footer__bottom-link">Умови використання</a>';
+                            echo '<a href="' . esc_url(home_url('/uk/cookie-policy/')) . '" class="footer__bottom-link">Політика використання файлів cookie</a>';
+                        }
+                        ?>
+                    <?php endif; ?>
                 </div>
             </div>
         <?php endif; ?>
