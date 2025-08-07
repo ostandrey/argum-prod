@@ -5,15 +5,31 @@
 
 $current_lang = function_exists('pll_current_language') ? pll_current_language() : 'ua';
 
-$phone = get_option('options_phone');
-
-if ($current_lang === 'en') {
-    $header_button_data = get_option('options_header_button_en') ?: get_option('options_header_button');
-} else {
-    $header_button_data = get_option('options_header_button');
+// Cache header data to avoid repeated queries
+function get_cached_header_data($lang) {
+    static $header_cache = array();
+    
+    if (!isset($header_cache[$lang])) {
+        $header_cache[$lang] = array(
+            'phone' => get_option('options_phone'),
+            'header_button' => null
+        );
+        
+        if ($lang === 'en') {
+            $header_button_data = get_option('options_header_button_en') ?: get_option('options_header_button');
+        } else {
+            $header_button_data = get_option('options_header_button');
+        }
+        
+        $header_cache[$lang]['header_button'] = $header_button_data ? maybe_unserialize($header_button_data) : null;
+    }
+    
+    return $header_cache[$lang];
 }
 
-$header_button = $header_button_data ? maybe_unserialize($header_button_data) : null;
+$header_data = get_cached_header_data($current_lang);
+$phone = $header_data['phone'];
+$header_button = $header_data['header_button'];
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>

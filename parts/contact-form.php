@@ -5,15 +5,32 @@
 
 $current_lang = function_exists('pll_current_language') ? pll_current_language() : 'ua';
 
-if ($current_lang === 'en') {
-    $title = get_option('options_contact_form_title_en') ?: get_option('options_contact_form_title');
-    $form_data = get_option('options_contact_form_en') ?: get_option('options_contact_form');
-} else {
-    $title = get_option('options_contact_form_title');
-    $form_data = get_option('options_contact_form');
+// Cache contact form data to avoid repeated queries
+function get_cached_contact_form_data($lang) {
+    static $contact_form_cache = array();
+    
+    if (!isset($contact_form_cache[$lang])) {
+        if ($lang === 'en') {
+            $form_data = get_option('options_contact_form_en') ?: get_option('options_contact_form');
+            $contact_form_cache[$lang] = array(
+                'title' => get_option('options_contact_form_title_en') ?: get_option('options_contact_form_title'),
+                'form' => $form_data ? maybe_unserialize($form_data) : null
+            );
+        } else {
+            $form_data = get_option('options_contact_form');
+            $contact_form_cache[$lang] = array(
+                'title' => get_option('options_contact_form_title'),
+                'form' => $form_data ? maybe_unserialize($form_data) : null
+            );
+        }
+    }
+    
+    return $contact_form_cache[$lang];
 }
 
-$form = $form_data ? maybe_unserialize($form_data) : null;
+$contact_form_data = get_cached_contact_form_data($current_lang);
+$title = $contact_form_data['title'];
+$form = $contact_form_data['form'];
 
 
 ?>

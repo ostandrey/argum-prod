@@ -5,19 +5,37 @@
 
 $current_lang = function_exists('pll_current_language') ? pll_current_language() : 'ua';
 
-if ($current_lang === 'en') {
-    $title = get_option('options_cta_title_en') ?: get_option('options_cta_title');
-    $subtitle_1 = get_option('options_cta_subtitle_1_en') ?: get_option('options_cta_subtitle_1');
-    $subtitle_2 = get_option('options_cta_subtitle_2_en') ?: get_option('options_cta_subtitle_2');
-
-    $button_data = get_option('options_cta_button_en') ?: get_option('options_cta_button');
-    $button = $button_data ? maybe_unserialize($button_data) : null;
-} else {
-    $title = get_option('options_cta_title');
-    $subtitle_1 = get_option('options_cta_subtitle_1');
-    $subtitle_2 = get_option('options_cta_subtitle_2');
-    $button = maybe_unserialize(get_option('options_cta_button'));
+// Cache CTA data to avoid repeated queries
+function get_cached_cta_data($lang) {
+    static $cta_cache = array();
+    
+    if (!isset($cta_cache[$lang])) {
+        if ($lang === 'en') {
+            $button_data = get_option('options_cta_button_en') ?: get_option('options_cta_button');
+            $cta_cache[$lang] = array(
+                'title' => get_option('options_cta_title_en') ?: get_option('options_cta_title'),
+                'subtitle_1' => get_option('options_cta_subtitle_1_en') ?: get_option('options_cta_subtitle_1'),
+                'subtitle_2' => get_option('options_cta_subtitle_2_en') ?: get_option('options_cta_subtitle_2'),
+                'button' => $button_data ? maybe_unserialize($button_data) : null
+            );
+        } else {
+            $cta_cache[$lang] = array(
+                'title' => get_option('options_cta_title'),
+                'subtitle_1' => get_option('options_cta_subtitle_1'),
+                'subtitle_2' => get_option('options_cta_subtitle_2'),
+                'button' => maybe_unserialize(get_option('options_cta_button'))
+            );
+        }
+    }
+    
+    return $cta_cache[$lang];
 }
+
+$cta_data = get_cached_cta_data($current_lang);
+$title = $cta_data['title'];
+$subtitle_1 = $cta_data['subtitle_1'];
+$subtitle_2 = $cta_data['subtitle_2'];
+$button = $cta_data['button'];
 
 if (empty($title) && empty($button)) {
     return;

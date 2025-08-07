@@ -5,15 +5,33 @@
 
 $current_lang = function_exists('pll_current_language') ? pll_current_language() : 'ua';
 
-if ($current_lang === 'en') {
-    $title = get_option('options_form_title_en') ?: get_option('options_form_title');
-    $image_id = get_option('options_form_image_en') ?: get_option('options_form_image');
-    $form_data = get_option('options_form_en') ?: get_option('options_form');
-} else {
-    $title = get_option('options_form_title');
-    $image_id = get_option('options_form_image');
-    $form_data = get_option('options_form');
+// Cache form data to avoid repeated queries
+function get_cached_form_data($lang) {
+    static $form_cache = array();
+    
+    if (!isset($form_cache[$lang])) {
+        if ($lang === 'en') {
+            $form_cache[$lang] = array(
+                'title' => get_option('options_form_title_en') ?: get_option('options_form_title'),
+                'image_id' => get_option('options_form_image_en') ?: get_option('options_form_image'),
+                'form_data' => get_option('options_form_en') ?: get_option('options_form')
+            );
+        } else {
+            $form_cache[$lang] = array(
+                'title' => get_option('options_form_title'),
+                'image_id' => get_option('options_form_image'),
+                'form_data' => get_option('options_form')
+            );
+        }
+    }
+    
+    return $form_cache[$lang];
 }
+
+$form_data = get_cached_form_data($current_lang);
+$title = $form_data['title'];
+$image_id = $form_data['image_id'];
+$form_data = $form_data['form_data'];
 
 $image = null;
 if ($image_id) {
