@@ -2196,3 +2196,162 @@ function auto_translate_options_fields($value, $post_id, $field) {
 
     return $value;
 }
+
+/**
+ * Fix Polylang homepage conflicts and 502 errors
+ */
+
+// Ensure proper homepage handling for different languages
+function fix_polylang_homepage_conflicts() {
+    // Only run if Polylang is active
+    if (!function_exists('pll_current_language')) {
+        return;
+    }
+
+    // Get current language
+    $current_lang = pll_current_language();
+    
+    // Get homepage settings for each language
+    $ua_homepage = get_option('page_on_front_ua');
+    $en_homepage = get_option('page_on_front_en');
+    
+    // If we're in admin and setting up homepages
+    if (is_admin() && isset($_POST['page_on_front'])) {
+        $new_homepage = intval($_POST['page_on_front']);
+        
+        // Store homepage for current language
+        update_option('page_on_front_' . $current_lang, $new_homepage);
+        
+        // Update the main page_on_front option based on current language
+        if ($current_lang === 'ua') {
+            update_option('page_on_front', $new_homepage);
+        } elseif ($current_lang === 'en') {
+            update_option('page_on_front', $new_homepage);
+        }
+    }
+}
+
+add_action('admin_init', 'fix_polylang_homepage_conflicts');
+
+// Prevent homepage conflicts when switching languages
+function prevent_homepage_conflicts_on_language_switch($language) {
+    if (!function_exists('pll_current_language')) {
+        return $language;
+    }
+    
+    // Get homepage for the target language
+    $target_homepage = get_option('page_on_front_' . $language);
+    
+    if ($target_homepage) {
+        // Temporarily set the homepage for this language
+        update_option('page_on_front', $target_homepage);
+    }
+    
+    return $language;
+}
+
+add_filter('pll_current_language', 'prevent_homepage_conflicts_on_language_switch', 5);
+
+// Fix 502 errors when publishing translated pages
+function fix_polylang_publish_502_error($post_id) {
+    // Only run for pages and if Polylang is active
+    if (get_post_type($post_id) !== 'page' || !function_exists('pll_get_post')) {
+        return;
+    }
+    
+    // Get the post language
+    $post_lang = pll_get_post_language($post_id);
+    
+    if (!$post_lang) {
+        return;
+    }
+    
+    // Clear any potential cache issues
+    if (function_exists('wp_cache_flush')) {
+        wp_cache_flush();
+    }
+    
+    // Force update the post to prevent 502 errors
+    $post_data = get_post($post_id, ARRAY_A);
+    if ($post_data) {
+        // Remove problematic fields that might cause 502
+        unset($post_data['post_content_filtered']);
+        unset($post_data['post_excerpt']);
+        
+        // Update the post
+        wp_update_post($post_data);
+    }
+}
+
+add_action('save_post', 'fix_polylang_publish_502_error', 10, 1);
+
+// Ensure proper homepage display based on current language
+function get_correct_homepage_for_language() {
+    if (!function_exists('pll_current_language')) {
+        return get_option('page_on_front');
+    }
+    
+    $current_lang = pll_current_language();
+    $homepage_id = get_option('page_on_front_' . $current_lang);
+    
+    if ($homepage_id) {
+        return $homepage_id;
+    }
+    
+    // Fallback to main homepage setting
+    return get_option('page_on_front');
+}
+
+// Override the page_on_front option for proper language handling
+function override_page_on_front_option($value) {
+    if (!function_exists('pll_current_language')) {
+        return $value;
+    }
+    
+    // Only override in frontend
+    if (is_admin()) {
+        return $value;
+    }
+    
+    return get_correct_homepage_for_language();
+}
+
+add_filter('option_page_on_front', 'override_page_on_front_option');
+
+// Add admin notice for homepage setup
+function add_homepage_setup_notice() {
+    if (!function_exists('pll_current_language')) {
+        return;
+    }
+    
+    $current_screen = get_current_screen();
+    if ($current_screen && $current_screen->id === 'options-reading') {
+        $ua_homepage = get_option('page_on_front_ua');
+        $en_homepage = get_option('page_on_front_en');
+        
+        if (!$ua_homepage || !$en_homepage) {
+            echo '<div class="notice notice-warning is-dismissible">';
+            echo '<p><strong>Polylang Homepage Setup:</strong> Make sure to set up homepages for both languages (Ukrainian and English) to avoid conflicts.</p>';
+            echo '</div>';
+        }
+    }
+}
+
+add_action('admin_notices', 'add_homepage_setup_notice');
+
+// Debug function to check homepage settings
+function debug_homepage_settings() {
+    if (!function_exists('pll_current_language')) {
+        return;
+    }
+    
+    $ua_homepage = get_option('page_on_front_ua');
+    $en_homepage = get_option('page_on_front_en');
+    $main_homepage = get_option('page_on_front');
+    $current_lang = pll_current_language();
+    
+    error_log("Homepage Debug - UA: $ua_homepage, EN: $en_homepage, Main: $main_homepage, Current Lang: $current_lang");
+}
+
+// Add this to your wp-config.php for debugging if needed
+// add_action('init', 'debug_homepage_settings');
